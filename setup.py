@@ -5,7 +5,6 @@
 
 from setuptools import setup
 
-
 setup(
     name="volta",
     version="0.0.1",
@@ -13,4 +12,5 @@ setup(
     description="",
     license="MIT",
     zip_safe=True,
+    py_modules=['data', 'apex', 'volta', 'config', 'conversions', 'config_tasks', 'features_extraction']
 )
