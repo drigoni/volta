@@ -1,5 +1,6 @@
 # specifica il sistema di partenza
-FROM nvidia/cudagl:10.1-devel-ubuntu18.04
+# FROM nvidia/cudagl:10.1-devel-ubuntu18.04
+FROM nvidia/cudagl:11.3.0-devel-ubuntu20.04
 
 # set variables
 # uid=1003(dkm) gid=1003(dkm) groups=1003(dkm),999(docker)
@@ -63,7 +64,7 @@ RUN activate ${CONDA_ENV}; pip install -r ${REPOSITORY_FOLDER}/requirements.txt
 
 # Install conda environment, specificando la variabile PATH
 
-RUN ${CONDA_FOLDER}/bin/conda install cudatoolkit=10.1 python=3.7 pytorch=1.4.0 torchvision=0.5  -c pytorch
+RUN ${CONDA_FOLDER}/bin/conda install cudatoolkit=11.3 python=3.7 pytorch torchvision  -c pytorch
 RUN ${CONDA_FOLDER}/bin/conda clean -ya
 
 # specifica la shell di default

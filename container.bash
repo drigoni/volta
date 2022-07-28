@@ -6,7 +6,6 @@ GPU=$3
 CMD=$4
 
 # default paths
-DATASETS_PATH="$(pwd)/../../datasets"
 CURRENT_FOLDER="$(pwd)"
 WANDB_KEY=06de2b089b5d98ee67dcf4fdffce3368e8bac2e4
 USER=dkm
@@ -44,20 +43,10 @@ elif [[ $MODE == "exec" ]]; then
     --ipc=host \
     -it  \
     -v ${CURRENT_FOLDER}/:/home/drigoni/repository/volta/ \
-    -v ${CURRENT_FOLDER}/datasets:/home/drigoni/repository/volta/datasets \
-    -v ${CURRENT_FOLDER}/output/:/home/drigoni/repository/volta/output \
-    -v ${CURRENT_FOLDER}/demo:/home/drigoni/repository/volta/demo \
-    -v ${CURRENT_FOLDER}/extracted_features:/home/drigoni/repository/volta/extracted_features \
-    -v ${CURRENT_FOLDER}/.vector_cache:/home/drigoni/repository/volta/.vector_cache \
-    -v ${CURRENT_FOLDER}/corpora:/root/nltk_data/corpora \
-    -v ${CURRENT_FOLDER}/datasets/flickr30k:/home/drigoni/repository/volta/datasets/flickr30k \
-    -v ${CURRENT_FOLDER}/datasets/flickr30k/out_ewiser:/home/drigoni/repository/volta/datasets/flickr30k/out_ewiser \
-    -v ${DATASETS_PATH}/COCO/annotations:/home/drigoni/repository/volta/datasets/coco/annotations \
-    -v ${DATASETS_PATH}/COCO/images/train2017:/home/drigoni/repository/volta/datasets/coco/train2017 \
-    -v ${DATASETS_PATH}/COCO/images/val2017:/home/drigoni/repository/volta/datasets/coco/val2017 \
-    -v ${DATASETS_PATH}/COCO/images/test2017:/home/drigoni/repository/volta/datasets/coco/test2017 \
-    -v ${DATASETS_PATH}/VisualGenome/images/:/home/drigoni/repository/volta/datasets/visual_genome/images \
-    -v ${DATASETS_PATH}/VisualGenome/annotations/:/home/drigoni/repository/volta/datasets/visual_genome/annotations \
+    -v ${CURRENT_FOLDER}/data:/home/drigoni/repository/volta/data \
+    -v ${CURRENT_FOLDER}/volta/datasets:/home/drigoni/repository/volta/volta/datasets \
+    -v ${CURRENT_FOLDER}/refer/data:/home/drigoni/repository/volta/refer/data \
+    -v ${CURRENT_FOLDER}/features_extraction:/home/drigoni/repository/volta/features_extraction \
     $VERSION \
     $CMD
     # '{"mode":0, "dataset":"flickr30k", "suffix":"kl1n0.4", "prefetch_factor":10, "num_workers":30, "align_loss":"kl", "regression_loss":"reg", "restore": null, "loss_weight_reg":1.0, "align_loss_kl_threshold":0.4}'
