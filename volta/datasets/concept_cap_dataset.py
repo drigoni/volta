@@ -8,6 +8,7 @@ import os
 import json
 import random
 import logging
+from typing import KeysView
 
 import numpy as np
 import tensorpack.dataflow as td
@@ -16,6 +17,9 @@ import torch
 import torch.distributed as dist
 
 import msgpack_numpy
+
+from volta.new_classes_mapper import get_categories_mapping, map_to_new_classes
+
 msgpack_numpy.patch()
 
 MAX_MSGPACK_LEN = 1000000000
@@ -419,13 +423,14 @@ class BertPreprocessBatch(object):
         self.visualization = visualization
         self.objective = objective
         self.num_locs = num_locs
+        self.cat_map, self.cat_new_labels, self.cat_old_labels = get_categories_mapping()
 
     def __call__(self, data):
         image_feature_wp, image_cls_wp, obj_labels, obj_confs, attr_labels, attr_confs, attr_scores, \
             image_location_wp, num_boxes, image_h, image_w, image_id, caption = data
 
         image_feature = np.zeros((self.region_len, 2048), dtype=np.float32)
-        image_cls = np.zeros((self.region_len, 1601), dtype=np.float32)
+        # image_cls = np.zeros((self.region_len, 1601), dtype=np.float32)      # with background as first class (idx=0)
         image_attrs = np.zeros((self.region_len, 401), dtype=np.float32)
         image_location = np.zeros((self.region_len, self.num_locs), dtype=np.float32)
 
@@ -434,13 +439,62 @@ class BertPreprocessBatch(object):
 
         num_boxes = int(num_boxes)
         image_feature[:num_boxes] = image_feature_wp
-        image_cls[:num_boxes] = image_cls_wp
         image_attrs[:num_boxes] = attr_scores
         image_location[:num_boxes, :4] = image_location_wp
-        obj_labels = obj_labels[:num_boxes]
-        obj_confs = obj_confs[:num_boxes]
         attr_labels = attr_labels[:num_boxes]
         attr_confs = attr_confs[:num_boxes]
+        
+        # image_cls[:num_boxes] = image_cls_wp
+        # obj_labels = obj_labels[:num_boxes]
+        # obj_confs = obj_confs[:num_boxes]    
+
+        # TODO drigoni: MAP classes.
+        # NOTE: some boxes have labels that differs from the class with best probability.!!!!
+        # print("====== DRIGONI PRINT")
+        # # print(image_cls.shape)
+        # # print(obj_labels.shape, obj_labels)
+        # # print(obj_confs.shape, obj_confs)
+        # errors = []
+        # for i, v in enumerate(image_cls):
+        #     pred_cls = obj_labels[i] + 1
+        #     pred_conf = obj_confs[i]
+        #     max_v = max(v)
+        #     max_id_v = list(v).index(max_v)
+        #     assert v[max_id_v] == max_v
+        #     # if max_id_v != pred_cls:
+        #     #     errors.append((i, pred_cls, pred_conf, v[pred_cls], "|", max_v, max_id_v, list(v).index(pred_conf))
+        #     assert obj_labels[i] >= 0 < 1600
+        #     if obj_labels[i] == 0:
+        #         print("ZEROOOOS", max_id_v)
+        # print(errors)
+        # exit(1)
+
+
+        image_cls = np.zeros((self.region_len, 879), dtype=np.float32)
+        new_obj_labels = np.zeros_like(obj_labels)
+        new_obj_confs = np.zeros_like(obj_confs)
+        for es in range(num_boxes):
+            for cls_idx in range(1601):               # [0, 1600]
+                if cls_idx == 0:                      # background class
+                    image_cls[es, 0] += image_cls_wp[es, 0]
+                else:
+                    idx = self.cat_map[cls_idx]       # [1, 1600]
+                    assert  0 < idx < 879
+                    image_cls[es, idx] += image_cls_wp[es, cls_idx]
+            new_obj_labels[es] = self.cat_map[obj_labels[es] + 1] - 1       # labels refer to the classes in [0, 1599]
+            new_obj_confs[es] = image_cls[es, new_obj_labels[es] + 1]       # follow the index to the new confidence score
+            
+
+
+
+         
+
+
+
+        
+    
+
+
 
         if self.num_locs >= 5:
             image_location[:, -1] = (
