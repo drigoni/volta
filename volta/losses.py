@@ -127,7 +127,8 @@ def xent_1601(prediction_scores_v, weight, label, image_cls, image_feat, obj_lab
 
 
 pre_vis_targets = {
-    "0": 1601,
+    # "0": 1601,
+    "0": 879,
     "1": 2048,
     "2": 2048,
     "3": 1600,

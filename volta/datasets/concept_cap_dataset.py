@@ -446,7 +446,8 @@ class BertPreprocessBatch(object):
         
         # image_cls[:num_boxes] = image_cls_wp
         # obj_labels = obj_labels[:num_boxes]
-        # obj_confs = obj_confs[:num_boxes]    
+        # obj_confs = obj_confs[:num_boxes]
+        # print("TYPES", type(obj_labels), type(obj_confs))    
 
         # TODO drigoni: MAP classes.
         # NOTE: some boxes have labels that differs from the class with best probability.!!!!
@@ -468,8 +469,6 @@ class BertPreprocessBatch(object):
         #         print("ZEROOOOS", max_id_v)
         # print(errors)
         # exit(1)
-
-
         image_cls = np.zeros((self.region_len, 879), dtype=np.float32)
         new_obj_labels = np.zeros_like(obj_labels)
         new_obj_confs = np.zeros_like(obj_confs)
@@ -483,17 +482,8 @@ class BertPreprocessBatch(object):
                     image_cls[es, idx] += image_cls_wp[es, cls_idx]
             new_obj_labels[es] = self.cat_map[obj_labels[es] + 1] - 1       # labels refer to the classes in [0, 1599]
             new_obj_confs[es] = image_cls[es, new_obj_labels[es] + 1]       # follow the index to the new confidence score
-            
-
-
-
-         
-
-
-
-        
-    
-
+        obj_labels = new_obj_labels
+        obj_confs = new_obj_confs
 
 
         if self.num_locs >= 5:
