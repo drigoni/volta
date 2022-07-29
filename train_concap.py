@@ -344,7 +344,7 @@ def main():
                 pair_match_loss = pair_match_loss.mean()
 
             if default_gpu:
-                tb_logger.step_val_CC(epoch_id, iter_id, float(masked_loss_t), float(masked_loss_v), 
+                tb_logger.step_val_CC(iter_id, float(masked_loss_t), float(masked_loss_v), 
                                       float(pair_match_loss), "TASK0", batch_size, "val")
                 sys.stdout.write("%d / %d \r" % (step, numBatches))
                 sys.stdout.flush()
