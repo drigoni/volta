@@ -18,6 +18,7 @@ python train_concap.py \
   --output_dir ${OUTPUT_DIR} \
   --logdir ${LOGGING_DIR} \
   --num_train_epochs 10 \
+  --seed 0 \
 #  --resume_file ${OUTPUT_DIR}/${MODEL_CONFIG}/pytorch_ckpt_latest.tar
 
 # --train_batch_size 256 --gradient_accumulation_steps 1 --max_seq_length 38 \
