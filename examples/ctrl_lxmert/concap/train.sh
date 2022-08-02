@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DATA=datasets/conceptual_captions
+DATA=data/conceptual_captions
 ANNOS=$DATA/annotations
 FEATS=$DATA/resnet101_faster_rcnn_genome_imgfeats/volta
 MODEL=ctrl_lxmert
@@ -8,9 +8,7 @@ MODEL_CONFIG=ctrl_lxmert
 OUTPUT_DIR=checkpoints/conceptual_captions/${MODEL}
 LOGGING_DIR=logs/conceptual_captions
 
-source activate volta
 
-cd ../../..
 python train_concap.py \
   --config_file config/${MODEL_CONFIG}.json \
   --train_batch_size 256 --gradient_accumulation_steps 2 --max_seq_length 38 \
@@ -23,4 +21,3 @@ python train_concap.py \
   --seed 0 \
 #  --resume_file ${OUTPUT_DIR}/${MODEL_CONFIG}/pytorch_ckpt_latest.tar
 
-conda deactivate
