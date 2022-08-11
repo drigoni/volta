@@ -2,3 +2,4 @@
 ./volta/datasets
 ./features_extraction
 ./refer/data
+./checkpoints/
