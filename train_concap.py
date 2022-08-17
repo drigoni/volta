@@ -267,6 +267,10 @@ def main():
     # Train
     for epoch_id in range(start_epoch, int(args.num_train_epochs)):
         model.train()
+        loss_acum = torch.zeros(1, device=device)
+        masked_loss_t_accum = torch.zeros(1, device=device)
+        masked_loss_v_accum = torch.zeros(1, device=device)
+        pair_match_loss_accum = torch.zeros(1, device=device)
         for step, batch in enumerate(train_dataset):
             iter_id = start_iter_id + step + (epoch_id * len(train_dataset))
             batch = tuple(t.cuda(device=device, non_blocking=True) for t in batch[:-1])
@@ -299,6 +303,15 @@ def main():
 
             if args.grad_acc_steps > 1:
                 loss = loss / args.grad_acc_steps
+                loss_acum += loss  # divided before
+                masked_loss_t_accum += masked_loss_t / args.grad_acc_steps
+                masked_loss_v_accum += masked_loss_v / args.grad_acc_steps
+                pair_match_loss_accum += pair_match_loss / args.grad_acc_steps
+            else:
+                loss_acum = loss
+                masked_loss_t_accum = masked_loss_t
+                masked_loss_v_accum = masked_loss_v
+                pair_match_loss_accum = pair_match_loss
             loss.backward()
 
             if (step + 1) % args.grad_acc_steps == 0:
@@ -312,17 +325,27 @@ def main():
                 global_step += 1
 
                 if default_gpu:
-                    tb_logger.step_train_CC(epoch_id, iter_id,
-                                            float(masked_loss_t), float(masked_loss_v), float(pair_match_loss),
+                    tb_logger.step_train_CC(epoch_id, iter_id/args.grad_acc_steps,
+                                            float(masked_loss_t_accum), float(masked_loss_v_accum), float(pair_match_loss_accum),
                                             optimizer.param_groups[0]["lr"], "TASK0", "train")
+                
+                # reset variable
+                loss_acum = torch.zeros_like(loss_acum, device=device)
+                masked_loss_t_accum = torch.zeros_like(masked_loss_t_accum, device=device)
+                masked_loss_v_accum = torch.zeros_like(masked_loss_v_accum, device=device)
+                pair_match_loss_accum = torch.zeros_like(pair_match_loss_accum, device=device)
 
-            if (step % (20 * args.grad_acc_steps) == 0) and step != 0 and default_gpu:
+            if ((step + 1) % (20 * args.grad_acc_steps) == 0) and step != 0 and default_gpu:
                 tb_logger.showLossTrainCC()
 
         # Do the evaluation
         torch.set_grad_enabled(False)
         numBatches = len(valid_dataset)
         model.eval()
+        loss_acum = torch.zeros(1, device=device)
+        masked_loss_t_accum = torch.zeros(1, device=device)
+        masked_loss_v_accum = torch.zeros(1, device=device)
+        pair_match_loss_accum = torch.zeros(1, device=device)
         for step, batch in enumerate(valid_dataset):
             batch = tuple(t.cuda(device=device, non_blocking=True) for t in batch[:-1])
 
@@ -343,16 +366,34 @@ def main():
                 masked_loss_v = masked_loss_v.mean()
                 pair_match_loss = pair_match_loss.mean()
 
-            if default_gpu:
-                tb_logger.step_val_CC(iter_id, float(masked_loss_t), float(masked_loss_v), 
-                                      float(pair_match_loss), "TASK0", batch_size, "val")
-                sys.stdout.write("%d / %d \r" % (step, numBatches))
-                sys.stdout.flush()
+            if args.grad_acc_steps > 1:
+                loss_acum += loss / args.grad_acc_steps
+                masked_loss_t_accum += masked_loss_t / args.grad_acc_steps
+                masked_loss_v_accum += masked_loss_v / args.grad_acc_steps
+                pair_match_loss_accum += pair_match_loss / args.grad_acc_steps
+            else:
+                loss_acum = loss
+                masked_loss_t_accum = masked_loss_t
+                masked_loss_v_accum = masked_loss_v
+                pair_match_loss_accum = pair_match_loss
+
+            if (step + 1) % args.grad_acc_steps == 0:
+                if default_gpu:
+                    tb_logger.step_val_CC(epoch_id, float(masked_loss_t_accum), float(masked_loss_v_accum), 
+                                        float(pair_match_loss_accum), "TASK0", batch_size, "val")
+                    sys.stdout.write("%d / %d \r" % (step, numBatches))
+                    sys.stdout.flush()
+                # reset variable
+                loss_acum = torch.zeros_like(loss_acum, device=device)
+                masked_loss_t_accum = torch.zeros_like(masked_loss_t_accum, device=device)
+                masked_loss_v_accum = torch.zeros_like(masked_loss_v_accum, device=device)
+                pair_match_loss_accum = torch.zeros_like(pair_match_loss_accum, device=device)
+
         if default_gpu:
             tb_logger.showLossValCC()
 
         torch.set_grad_enabled(True)
-        save(save_path, logger, epoch_id, model, optimizer, scheduler, global_step, tb_logger, default_gpu, loss)
+        save(save_path, logger, epoch_id, model, optimizer, scheduler, global_step, tb_logger, default_gpu, loss_acum)
 
     if default_gpu:
         tb_logger.txt_close()

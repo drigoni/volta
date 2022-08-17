@@ -107,18 +107,13 @@ class tbLogger(object):
         self.task_step_val[task_id] += self.gradient_accumulation_steps
         self.task_datasize_val[task_id] += batch_size
 
-    def step_val_CC(self, iter_id, masked_loss_t, masked_loss_v, next_sentence_loss, task_id, batch_size, split):
+    def step_val_CC(self, epoch_id, masked_loss_t, masked_loss_v, next_sentence_loss, task_id, batch_size, split):
         self.masked_t_loss_val[task_id] += masked_loss_t
         self.masked_v_loss_val[task_id] += masked_loss_v
         self.next_sentense_loss_val[task_id] += next_sentence_loss
 
         self.task_step_val[task_id] += self.gradient_accumulation_steps
         self.task_datasize_val[task_id] += batch_size
-        
-        # plot on tensorboard.
-        self.linePlot(iter_id, masked_loss_t, split, self.task_id2name[task_id] + "_masked_loss_t")
-        self.linePlot(iter_id, masked_loss_v, split, self.task_id2name[task_id] + "_masked_loss_v")
-        self.linePlot(iter_id, next_sentence_loss, split, self.task_id2name[task_id] + "_next_sentence_loss")
 
     def showLossValAll(self):
         progressInfo = "Eval Ep: %d " % self.epochId
@@ -200,9 +195,9 @@ class tbLogger(object):
     def showLossValCC(self):
         lossInfo = "Validation "
         for task_id in self.task_ids:
-            masked_t_loss_val = self.masked_t_loss_val[task_id] / float(self.task_step_val[task_id])
-            masked_v_loss_val = self.masked_v_loss_val[task_id] / float(self.task_step_val[task_id])
-            next_sentense_loss_val = self.next_sentense_loss_val[task_id] / float(self.task_step_val[task_id])
+            masked_t_loss_val = self.masked_t_loss_val[task_id] / (float(self.task_step_val[task_id]) / float(self.gradient_accumulation_steps))
+            masked_v_loss_val = self.masked_v_loss_val[task_id] / (float(self.task_step_val[task_id]) / float(self.gradient_accumulation_steps))
+            next_sentense_loss_val = self.next_sentense_loss_val[task_id] / (float(self.task_step_val[task_id]) / float(self.gradient_accumulation_steps))
 
             lossInfo += "[%s]: masked_t %.3f masked_v %.3f NSP %.3f" % (
                 self.task_id2name[task_id],
@@ -234,10 +229,11 @@ class tbLogger(object):
                         "[%s]: iter %d Ep: %.2f masked_t %.3f masked_v %.3f NSP %.3f lr %.6g"
                         % (
                             self.task_id2name[task_id], self.task_step[task_id],
-                            self.task_step[task_id] / float(self.task_num_iters[task_id]),
-                            self.masked_t_loss[task_id] / float(self.task_step_tmp[task_id]),
-                            self.masked_v_loss[task_id] / float(self.task_step_tmp[task_id]),
-                            self.next_sentense_loss[task_id] / float(self.task_step_tmp[task_id]),
+                            self.task_step[task_id] / float(self.task_num_iters[task_id]), 
+                            # it is done like this to edit less lines as possible
+                            self.masked_t_loss[task_id] / (float(self.task_step_tmp[task_id]) /  float(self.gradient_accumulation_steps)),
+                            self.masked_v_loss[task_id] / (float(self.task_step_tmp[task_id]) /  float(self.gradient_accumulation_steps)),
+                            self.next_sentense_loss[task_id] / (float(self.task_step_tmp[task_id]) /  float(self.gradient_accumulation_steps)),
                             self.task_norm_tmp[task_id] / float(self.task_step_tmp[task_id]),
                         )
                     )
