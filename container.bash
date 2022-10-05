@@ -44,7 +44,6 @@ elif [[ $MODE == "exec" ]]; then
     -it  \
     -v ${CURRENT_FOLDER}/:/home/drigoni/repository/volta/ \
     -v ${CURRENT_FOLDER}/data:/home/drigoni/repository/volta/data \
-    -v ${CURRENT_FOLDER}/volta/datasets:/home/drigoni/repository/volta/volta/datasets \
     -v ${CURRENT_FOLDER}/refer/data:/home/drigoni/repository/volta/refer/data \
     -v ${CURRENT_FOLDER}/features_extraction:/home/drigoni/repository/volta/features_extraction \
     $VERSION \
