@@ -18,15 +18,17 @@ if [[ $MODE == "build" ]]; then
   docker build ./ -t $VERSION
   # here we use root permission instead of # -u 
   echo "=== MAKE refer"
-  docker run -v $CURRENT_FOLDER/:/home/drigoni/repository/volta/ \
+  docker run \
     -u root\
     --runtime=nvidia \
+    -v $CURRENT_FOLDER/:/home/drigoni/repository/volta/ \
     $VERSION \
     bash -c 'cd ./tools/refer && make'
   echo "=== MAKE setup"
-  docker run -v $CURRENT_FOLDER/:/home/drigoni/repository/volta/ \
+  docker run \
     -u root\
     --runtime=nvidia \
+    -v $CURRENT_FOLDER/:/home/drigoni/repository/volta/ \
     $VERSION \
     python setup.py develop
 elif [[ $MODE == "exec" ]]; then
@@ -50,10 +52,11 @@ elif [[ $MODE == "exec" ]]; then
     $CMD
     # '{"mode":0, "dataset":"flickr30k", "suffix":"kl1n0.4", "prefetch_factor":10, "num_workers":30, "align_loss":"kl", "regression_loss":"reg", "restore": null, "loss_weight_reg":1.0, "align_loss_kl_threshold":0.4}'
 elif [[ $MODE == "interactive" ]]; then
-  docker run -v $CURRENT_FOLDER/:/home/drigoni/repository/volta/ \
-    -u root\
+  docker run \
+    -u ${USER}:${USER_GROUP} \
     --runtime=nvidia \
     -it \
+    -v $CURRENT_FOLDER/:/home/drigoni/repository/volta/ \
     $VERSION \
     '/bin/bash'
 else
