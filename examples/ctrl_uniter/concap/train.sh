@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DATA=datasets/conceptual_captions
+DATA=data/conceptual_captions
 ANNOS=$DATA/annotations
 FEATS=$DATA/resnet101_faster_rcnn_genome_imgfeats/volta
 MODEL=ctrl_uniter
