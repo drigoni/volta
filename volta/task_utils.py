@@ -328,7 +328,7 @@ def LoadDataset(args, config, task_cfg, task_id, split="trainval"):
     dset_val, dl_val = None, None
     if data_format == "serialized_lmdb":
         if "train" in split:
-            dl_train = DatasetMapTrain[task_name+"Loader"](
+            dl_train = DatasetMapTrain[task_name](
                 task=task_cfg[task]["name"],
                 dataroot=task_cfg[task]["dataroot"],
                 annotations_jsonpath=train_annotations_jsonpath,
@@ -343,14 +343,14 @@ def LoadDataset(args, config, task_cfg, task_id, split="trainval"):
                 num_locs=config.num_locs,
                 add_global_imgfeat=config.add_global_imgfeat,
                 append_mask_sep=(config.fusion_method == 'vl-bert_vqa'),
-                norm_embeddings=config.norm_embeddings,
-                batch_size=batch_size,
-                num_workers=num_workers,
-                cache=cache,
+                # norm_embeddings=config.norm_embeddings,
+                # batch_size=batch_size,
+                # num_workers=num_workers,
+                # cache=cache,
             )
             task2num_iters = {task: len(dl_train)}
         if "val" in split:
-            dl_val = DatasetMapTrain[task_name+"Loader"](
+            dl_val = DatasetMapTrain[task_name](
                 task=task_cfg[task]["name"],
                 dataroot=task_cfg[task]["dataroot"],
                 annotations_jsonpath=val_annotations_jsonpath,
@@ -365,10 +365,10 @@ def LoadDataset(args, config, task_cfg, task_id, split="trainval"):
                 num_locs=config.num_locs,
                 add_global_imgfeat=config.add_global_imgfeat,
                 append_mask_sep=(config.fusion_method == 'vl-bert_vqa'),
-                norm_embeddings=config.norm_embeddings,
-                batch_size=batch_size,
-                num_workers=num_val_workers,
-                cache=cache,
+                # norm_embeddings=config.norm_embeddings,
+                # batch_size=batch_size,
+                # num_workers=num_val_workers,
+                # cache=cache,
             )
 
     else:
@@ -462,6 +462,8 @@ def LoadDatasetEval(args, config, task_cfg, task_id):
     else:
         eval_split = task_cfg[task]["val_split"]
 
+    val_annotations_jsonpath = args.val_annotations_jsonpath or task_cfg[task]["val_annotations_jsonpath"]
+    
     if task_name.startswith("Retrieval"):
         dset_val = DatasetMapEval[task_name](
             task=task_cfg[task]["name"],

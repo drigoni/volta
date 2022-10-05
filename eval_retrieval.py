@@ -256,8 +256,8 @@ def main():
     json.dump(others, open(json_path + "_others.json", "w"))
 
     # Text Retrieval
-    rank_vector = np.zeros(args.num_images)
-    for image_idx in range(args.num_images):
+    rank_vector = np.zeros(dset_val.num_images)
+    for image_idx in range(dset_val.num_images):
         ranks = []
         tgt_captions = np.where(target_matrix[:, image_idx] == 1)[0]
         sorted_scores = np.argsort(-score_matrix[:, image_idx])

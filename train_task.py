@@ -293,19 +293,21 @@ def main():
         print("  Num steps: %d" % num_train_optim_steps)
 
     # Train
-    scores = 0
     max_epoch = args.num_epoch or task_cfg[task]['num_epoch']
-    for epoch_id in tqdm(range(start_epoch, max_epoch), desc="Epoch"):
+    # for epoch_id in tqdm(range(start_epoch, max_epoch), desc="Epoch"):
+    for epoch_id in range(start_epoch, max_epoch):
         model.train()
-        # from pudb import set_trace; set_trace()
+        loss_acum = torch.zeros(1, device=device)
+        score_accum = torch.zeros(1, device=device)
         for step, batch in enumerate(dl_train):
             iter_id = start_iter_id + step // args.grad_acc_steps + (epoch_id * len(dl_train))
 
             loss, score = ForwardModelsTrain(config, task_cfg, device, task, batch, model, criterion)
-            scores += score
 
             if args.grad_acc_steps > 1:
                 loss = loss / args.grad_acc_steps
+                loss_acum += loss
+                score_accum += score / args.grad_acc_steps
             loss.backward()
 
             if (step + 1) % args.grad_acc_steps == 0:
@@ -323,11 +325,14 @@ def main():
                 global_step += 1
 
                 if default_gpu:
-                    tb_logger.step_train(epoch_id, iter_id, float(loss), float(scores/args.grad_acc_steps),
+                    tb_logger.step_train(epoch_id, iter_id/args.grad_acc_steps, float(loss), float(score_accum),
                                          optimizer.param_groups[0]["lr"], task, "train")
-                    scores = 0
 
-            if (step % (20 * args.grad_acc_steps) == 0) and step != 0 and default_gpu:
+                # reset variable
+                loss_acum = torch.zeros_like(loss_acum, device=device)
+                score_accum = torch.zeros_like(score_accum, device=device)
+
+            if ((step + 1) % (20 * args.grad_acc_steps) == 0) and step != 0 and default_gpu:
                 tb_logger.showLossTrain()
 
             # Decide whether to evaluate task
@@ -335,9 +340,7 @@ def main():
                 score = evaluate(config, dl_val, task_cfg, device, task, model, criterion, epoch_id, default_gpu, tb_logger)
                 if score > max_score:
                     max_score = score
-                    save(save_path, logger, iter_id, model, optimizer, scheduler,
-                         global_step, tb_logger, default_gpu, max_score, is_best=True)
-
+                    save(save_path, logger, iter_id, model, optimizer, scheduler, global_step, tb_logger, default_gpu, max_score, is_best=True)
         torch.cuda.empty_cache()
 
         score = evaluate(config, dl_val, task_cfg, device, task, model, criterion, epoch_id, default_gpu, tb_logger, args.max_val_batches)
@@ -353,10 +356,13 @@ def main():
 
 def evaluate(config, dataloader_val, task_cfg, device, task_id, model, criterion, epoch_id, default_gpu, tb_logger, num_batches=-1):
     model.eval()
+    loss_acum = torch.zeros(1, device=device)
+    score_accum = torch.zeros(1, device=device)
     for i, batch in enumerate(dataloader_val):
         if i == (num_batches - 1):
             break
         loss, score, batch_size = ForwardModelsVal(config, task_cfg, device, task_id, batch, model, criterion)
+
         tb_logger.step_val(epoch_id, float(loss), float(score), task_id, batch_size, "val")
         if default_gpu:
             sys.stdout.write("%d/%d\r" % (i, len(dataloader_val)))

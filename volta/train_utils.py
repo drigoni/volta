@@ -178,8 +178,9 @@ class tbLogger(object):
                         % (
                             self.task_id2name[task_id], self.task_step[task_id],
                             self.task_step[task_id] / float(self.task_num_iters[task_id]),
-                            self.task_loss_tmp[task_id] / float(self.task_step_tmp[task_id]),
-                            self.task_score_tmp[task_id] / float(self.task_step_tmp[task_id]),
+                            # it is done like this to edit less lines as possible
+                            self.task_loss_tmp[task_id] / (float(self.task_step_tmp[task_id]) /  float(self.gradient_accumulation_steps)),
+                            self.task_score_tmp[task_id] / (float(self.task_step_tmp[task_id]) /  float(self.gradient_accumulation_steps)),
                             self.task_norm_tmp[task_id] / float(self.task_step_tmp[task_id]),
                         )
                     )
