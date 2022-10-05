@@ -37,6 +37,7 @@ TASK8:
   val_split: val
   lr: 0.00002
   num_epoch: 20
+  format: "NOT_serialized_lmdb"  # it is needed for loading the given dataset. With 'serialized_lmdb' it is not working
 TASK10:
   name: refcoco+
   type: V-logit
