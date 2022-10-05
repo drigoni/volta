@@ -327,6 +327,7 @@ def LoadDataset(args, config, task_cfg, task_id, split="trainval"):
     dset_train, dl_train, task2num_iters = None, None, {}
     dset_val, dl_val = None, None
     if data_format == "serialized_lmdb":
+        # Some parameters are commented because some errors were appearing during loading time. Check better
         if "train" in split:
             dl_train = DatasetMapTrain[task_name](
                 task=task_cfg[task]["name"],
