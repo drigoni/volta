@@ -1,6 +1,8 @@
-./data
-./datasets
-./volta/datasets
-./features_extraction
-./refer/data
-./checkpoints/
+features_extraction/*
+.idea/*
+datasets/*
+data/*
+results/*
+logs/*
+checkpoints/*
+backup_runs/*
