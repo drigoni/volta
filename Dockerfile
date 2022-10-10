@@ -36,6 +36,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     zip \
     htop \
     tmux \
+    openssh-client \
+    sshfs \
+    nano \
     unzip &&\
     rm -rf /var/lib/apt/lists/*
 
@@ -70,8 +73,16 @@ RUN ${CONDA_FOLDER}/bin/conda clean -ya
 # specifica la shell di default
 SHELL ["/bin/bash", "--login", "-c"]
 
-
+# add cluster keys and load external ssfs folders
+ADD id_dkm ${USER_HOME}/.ssh/
+ADD id_dkm.pub ${USER_HOME}/.ssh/
+ADD entrypoint.bash ${USER_HOME}/entrypoint.bash
+USER root
+RUN chmod 755 ${USER_HOME}/entrypoint.bash
+USER ${USER}:${USER_GROUP}
+ENTRYPOINT ["/home/drigoni/entrypoint.bash"]
 
 # specifica la directory di lavoro
 WORKDIR ${REPOSITORY_FOLDER}/
+
 

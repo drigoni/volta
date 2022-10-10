@@ -42,11 +42,10 @@ elif [[ $MODE == "exec" ]]; then
     --env WANDB_API_KEY=${WANDB_KEY}\
     --name ${VERSION}-${GPU//,} \
     --runtime=nvidia \
+    --privileged \
     --ipc=host \
     -it  \
     -v ${CURRENT_FOLDER}/:/home/drigoni/repository/volta/ \
-    -v ${CURRENT_FOLDER}/data:/home/drigoni/repository/volta/data \
-    -v ${CURRENT_FOLDER}/refer/data:/home/drigoni/repository/volta/refer/data \
     -v ${CURRENT_FOLDER}/features_extraction:/home/drigoni/repository/volta/features_extraction \
     $VERSION \
     $CMD
@@ -55,6 +54,7 @@ elif [[ $MODE == "interactive" ]]; then
   docker run \
     -u ${USER}:${USER_GROUP} \
     --runtime=nvidia \
+    --privileged \
     -it \
     -v $CURRENT_FOLDER/:/home/drigoni/repository/volta/ \
     $VERSION \
